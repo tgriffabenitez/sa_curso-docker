@@ -1,0 +1,74 @@
+# version de docker-compose
+version: "3.9" 
+
+services:
+  mysql-users:
+    container_name: mysql-users
+    image: mysql:8
+    ports:
+      - 3307:3306
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+      MYSQL_DATABASE: sa_docker-users
+    volumes:
+      - data-mysql-users:/var/lib/mysql
+    networks:
+      - spring
+    restart: always
+
+  mysql-courses:
+    container_name: mysql-courses
+    image: mysql:8    
+    ports:
+      - 3308:3306
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: yes
+      MYSQL_DATABASE: sa_docker-courses
+    volumes:
+      - data-mysql-courses:/var/lib/mysql
+    networks:
+      - spring
+    restart: always
+
+  msvc-users:
+    container_name: msvc-users
+    # image: ms-users -> esto sirve solo si ya tengo la imgen descargada en mi pc
+    build:
+      context: ./ms-users
+      dockerfile: Dockerfile
+    ports:
+      - 8085:8085
+    env_file:
+      - ./ms-users/.env
+    networks:
+      - spring
+    depends_on:
+      - mysql-users
+    restart: always
+
+  msvc-courses:
+    container_name: msvc-courses
+    # image: ms-courses
+    build:
+      context: ./ms-courses
+      dockerfile: Dockerfile
+    ports:
+      - 8086:8086
+    env_file:
+      - ./ms-courses/.env
+    networks:
+      - spring
+    depends_on:
+      - mysql-courses
+      - msvc-users
+    restart: always
+    
+volumes:
+  data-mysql-users:
+    name: data-mysql-users
+  data-mysql-courses:
+    name: data-mysql-courses
+
+networks:
+  spring:
+    name: spring
